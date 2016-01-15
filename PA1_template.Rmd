@@ -340,7 +340,7 @@ data_fill_na[,4]<-as.factor(data_fill_na[,4])
 
 ```{r }
 
-par(mfrow=c(1,2))
+par(mfrow=c(2,1))
 
 average<- cumsum(data_fill_na[,1])/nrow(data_fill_na)
 

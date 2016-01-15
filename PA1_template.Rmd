@@ -15,7 +15,7 @@ Save a copy of data that have no NAs
 ```{r}
 
 
-data_no_NAs<-na.omit(data)
+data_agg<-aggregate(steps ~ date, data = data, sum, na.rm = TRUE)
 
 
 ```
@@ -27,43 +27,14 @@ data_no_NAs<-na.omit(data)
 
 For this part of the assignment, you can ignore the missing values in the dataset.
 
-1.Calculate the total number of steps taken per day
+
+
+
+1.Calculate the total number of steps taken per day.Make a histogram of the total number of steps taken each day
 
 ```{r}
 
-steps<-NULL
-
-for ( i in levels(data[,2]))
-
-        {
-          steps[i]<-sum(data_no_NAs[data_no_NAs[,2]==i,1])
-            
-        }
-
-
-steps<-data.frame(steps)
-
-t(steps)
-
-steps<-cbind(steps,"Date"=rownames(steps))
-
-names(steps[,2])<-"Date"
-
-
-```
-
-
-
-
-2.Make a histogram of the total number of steps taken each day
-
-```{r}
-
-library(ggplot2)
-
-p<- ggplot(steps,aes(steps)) + geom_histogram()
-
-p
+hist(data_agg$steps)
 
 ```
 
@@ -75,18 +46,7 @@ p
 Mean 
 ```{r}
 
-mean_steps<- NULL
-
-for ( i in levels(data[,2]))
-
-        {
-          mean_steps[i]<-mean(data_no_NAs[data_no_NAs[,2]==i,1])
-            
-        }
-
-mean_steps<-data.frame(mean_steps)
-
-t(mean_steps)
+mean(data_agg$steps)
 
 
 ```
@@ -95,18 +55,7 @@ t(mean_steps)
 Median
 ```{r}
 
-median_steps<- NULL
-
-for ( i in levels(data[,2]))
-
-        {
-          median_steps[i]<-median(data_no_NAs[data_no_NAs[,2]==i,1])
-            
-        }
-
-median_steps<-data.frame(mean_steps)
-
-t(median_steps)
+median(data_agg$steps)
 
 ```
 
@@ -121,14 +70,8 @@ t(median_steps)
 ```{r}
 
 
-average<- cumsum(data_no_NAs[,1])/nrow(data_no_NAs)
-
-
-data_timeseries<-cbind(data_no_NAs,average)
-
-tss=ts(data_timeseries$date)
-
-ggplot(data_timeseries, aes(tss, average)) + geom_line()
+stepsInterval <- aggregate(steps ~ interval, data = data, mean, na.rm = TRUE)
+plot(steps ~ interval, data = stepsInterval, type = "l")
  
 
 
@@ -141,9 +84,9 @@ ggplot(data_timeseries, aes(tss, average)) + geom_line()
 
 ```{r}
 
-max_steps<-max(data_no_NAs[,1])
+max_steps<-max(stepsInterval[,1])
 
-rownames(data_no_NAs[data_no_NAs[,1]==max_steps,])
+rownames(stepsInterval[stepsInterval[,1]==max_steps,])
 
 
 ```
@@ -230,24 +173,8 @@ data_fill_na <-data
 Histogram
 ```{r}
 
-steps<-NULL
-
-for ( i in levels(data[,2]))
-
-        {
-          steps[i]<-sum(data_fill_na[data_fill_na[,2]==i,1])
-            
-        }
-
-
-steps<-data.frame(steps)
-
-
-library(ggplot2)
-
-p<- ggplot(steps,aes(steps)) + geom_histogram()
-
-p
+data_agg_fill<-aggregate(steps ~ date, data = data_fill_na, sum, na.rm = TRUE)
+hist(data_agg_fill$steps)
 
 ```
 
@@ -255,18 +182,7 @@ p
 Mean 
 ```{r}
 
-mean_steps<- NULL
-
-for ( i in levels(data_fill_na[,2]))
-
-        {
-          mean_steps[i]<-mean(data_fill_na[data_fill_na[,2]==i,1])
-            
-        }
-
-mean_steps<-data.frame(mean_steps)
-
-t(mean_steps)
+mean(data_agg_fill$steps)
 
 
 ```
@@ -275,18 +191,7 @@ t(mean_steps)
 Median
 ```{r}
 
-median_steps<- NULL
-
-for ( i in levels(data_fill_na[,2]))
-
-        {
-          median_steps[i]<-median(data_fill_na[data_fill_na[,2]==i,1])
-            
-        }
-
-median_steps<-data.frame(mean_steps)
-
-t(median_steps)
+median(data_agg_fill$steps)
 
 ```
 
@@ -340,28 +245,10 @@ data_fill_na[,4]<-as.factor(data_fill_na[,4])
 
 ```{r }
 
-par(mfrow=c(2,1))
-
-average<- cumsum(data_fill_na[,1])/nrow(data_fill_na)
-
-
-data_fill_na<-cbind(data_fill_na,average)
-
-data_fill_na_wday <- data_fill_na[data_fill_na[,4]=="weekday",]
-  
-weekday=ts(data_fill_na_wday$date)
-
-
-plot(weekday,data_fill_na_wday$average, type="l")
-
-
-data_fill_na_wend <- data_fill_na[data_fill_na[,4]=="weekend",]
-  
-Weekend=ts(data_fill_na_wend$date)
-
-
-plot(Weekend,data_fill_na_wend$average, type="l")
-
+stepsInterval2 = aggregate(steps ~ interval + V4, data_fill_na, mean)
+library(lattice)
+xyplot(steps ~ interval | factor(V4), data = stepsInterval2, aspect = 1/2, 
+    type = "l")
 
 
 ```

@@ -1,25 +1,368 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
-
-
-## Loading and preprocessing the data
+##Loading and preprocessing the data
 
 
 
-## What is mean total number of steps taken per day?
+Load the data 
+```{r}
+
+data<-read.csv("activity.csv")
+
+```
+
+
+Save a copy of data that have no NAs
+
+```{r}
+
+
+data_no_NAs<-na.omit(data)
+
+
+```
 
 
 
-## What is the average daily activity pattern?
+##What is mean total number of steps taken per day?
+
+
+For this part of the assignment, you can ignore the missing values in the dataset.
+
+1.Calculate the total number of steps taken per day
+
+```{r}
+
+steps<-NULL
+
+for ( i in levels(data[,2]))
+
+        {
+          steps[i]<-sum(data_no_NAs[data_no_NAs[,2]==i,1])
+            
+        }
+
+
+steps<-data.frame(steps)
+
+t(steps)
+
+steps<-cbind(steps,"Date"=rownames(steps))
+
+names(steps[,2])<-"Date"
+
+
+```
 
 
 
-## Imputing missing values
+
+2.Make a histogram of the total number of steps taken each day
+
+```{r}
+
+library(ggplot2)
+
+p<- ggplot(steps,aes(steps)) + geom_histogram()
+
+p
+
+```
 
 
 
-## Are there differences in activity patterns between weekdays and weekends?
+3.Calculate and report the mean and median of the total number of steps taken per day
+
+
+Mean 
+```{r}
+
+mean_steps<- NULL
+
+for ( i in levels(data[,2]))
+
+        {
+          mean_steps[i]<-mean(data_no_NAs[data_no_NAs[,2]==i,1])
+            
+        }
+
+mean_steps<-data.frame(mean_steps)
+
+t(mean_steps)
+
+
+```
+
+
+Median
+```{r}
+
+median_steps<- NULL
+
+for ( i in levels(data[,2]))
+
+        {
+          median_steps[i]<-median(data_no_NAs[data_no_NAs[,2]==i,1])
+            
+        }
+
+median_steps<-data.frame(mean_steps)
+
+t(median_steps)
+
+```
+
+
+
+
+
+##What is the average daily activity pattern?
+
+1.Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```{r}
+
+
+average<- cumsum(data_no_NAs[,1])/nrow(data_no_NAs)
+
+
+data_timeseries<-cbind(data_no_NAs,average)
+
+tss=ts(data_timeseries$date)
+
+ggplot(data_timeseries, aes(tss, average)) + geom_line()
+ 
+
+
+```
+
+
+
+2.Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+
+```{r}
+
+max_steps<-max(data_no_NAs[,1])
+
+rownames(data_no_NAs[data_no_NAs[,1]==max_steps,])
+
+
+```
+The above number of row contains the maximun number of steps.
+
+
+
+
+##Imputing missing values
+
+Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
+
+
+1.Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+
+
+```{r}
+
+
+na_number <- nrow(data[is.na(data),])
+
+na_number
+
+
+```
+
+
+2.Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+Use the mean of that interval to fill in NAs
+```{r}
+
+mean_interval<- NULL
+
+
+for (i in levels(as.factor(data[,3])))
+     
+     {
+  
+        mean_interval[i]<-  mean(data[data[,3]==i,1],na.rm = TRUE)
+     
+     
+     }
+
+
+for (i in 1: nrow(data))
+
+              {
+                 if (is.na(data[i,1])) 
+                      {
+                          
+                          get_date <- data[i,2]
+                   
+                          data[i,1]<-mean_interval[get_date]
+                    
+                      }
+                  
+  
+              }
+
+
+
+```
+
+
+
+
+2.Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+```{r}
+
+
+data_fill_na <-data
+
+
+```
+
+
+
+
+3.Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+
+Histogram
+```{r}
+
+steps<-NULL
+
+for ( i in levels(data[,2]))
+
+        {
+          steps[i]<-sum(data_fill_na[data_fill_na[,2]==i,1])
+            
+        }
+
+
+steps<-data.frame(steps)
+
+
+library(ggplot2)
+
+p<- ggplot(steps,aes(steps)) + geom_histogram()
+
+p
+
+```
+
+
+Mean 
+```{r}
+
+mean_steps<- NULL
+
+for ( i in levels(data_fill_na[,2]))
+
+        {
+          mean_steps[i]<-mean(data_fill_na[data_fill_na[,2]==i,1])
+            
+        }
+
+mean_steps<-data.frame(mean_steps)
+
+t(mean_steps)
+
+
+```
+
+
+Median
+```{r}
+
+median_steps<- NULL
+
+for ( i in levels(data_fill_na[,2]))
+
+        {
+          median_steps[i]<-median(data_fill_na[data_fill_na[,2]==i,1])
+            
+        }
+
+median_steps<-data.frame(mean_steps)
+
+t(median_steps)
+
+```
+
+Compared with the first part, they are basically the same.
+
+
+##Are there differences in activity patterns between weekdays and weekends?
+
+
+4.For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
+
+Create a new factor variable in the dataset with two levels ¨C ¡°weekday¡± and ¡°weekend¡± indicating whether a given date is a weekday or weekend day.
+
+```{r}
+
+library(timeDate)
+
+
+
+data_fill_na[,4]<-NULL
+
+data_fill_na[,2]<- as.Date(data_fill_na[,2])
+
+for (i in 1:nrow(data_fill_na))
+  
+      {
+          if (isWeekday(data_fill_na[i,2]))
+             
+          {
+            
+            data_fill_na[i,4]<-"weekday"
+            
+          }
+
+             
+             else
+               
+               data_fill_na[i,4]<-"weekend"
+  
+  
+}
+
+data_fill_na[,4]<-as.factor(data_fill_na[,4])
+
+```
+
+
+
+5.Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+
+
+```{r }
+
+par(mfrow=c(1,2))
+
+average<- cumsum(data_fill_na[,1])/nrow(data_fill_na)
+
+
+data_fill_na<-cbind(data_fill_na,average)
+
+data_fill_na_wday <- data_fill_na[data_fill_na[,4]=="weekday",]
+  
+weekday=ts(data_fill_na_wday$date)
+
+
+plot(weekday,data_fill_na_wday$average, type="l")
+
+
+data_fill_na_wend <- data_fill_na[data_fill_na[,4]=="weekend",]
+  
+Weekend=ts(data_fill_na_wend$date)
+
+
+plot(Weekend,data_fill_na_wend$average, type="l")
+
+
+
+```
+
